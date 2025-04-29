@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Мої 3D-моделі</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+      }
+      #menu {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 8px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Меню для вибору моделі -->
+    <div id="menu">
+      <label for="modelSelect">Виберіть модель:</label>
+      <select id="modelSelect">
+        <option value="modelAfroditPlanet/planet_afroditi.glb">Planet</option>
+        <option value="modelPlanet/planet.glb">planet</option>
+        <option value="modelStylePlanet/stylized_planet.glb">Fridge</option>
+      </select>
+      <button id="loadButton">Завантажити модель</button>
+    </div>
+
+    <!-- Підключення Three.js та GLTFLoader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <script>
+      let scene, camera, renderer, loader, currentModel;
+
+      // Ініціалізація сцени
+      function init() {
+        scene = new THREE.Scene();
+
+        camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
+        );
+        camera.position.z = 2; // Віддаленість камери від моделі
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Додамо просте освітлення
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(ambientLight);
+
+        loader = new THREE.GLTFLoader();
+
+        // Запустимо анімаційний цикл
+        animate();
+      }
+
+      // Функція завантаження моделі
+      function loadModel(path) {
+        // Якщо вже є модель, видаляємо її зі сцени
+        if (currentModel) {
+          scene.remove(currentModel);
+        }
+
+        loader.load(
+          path,
+          function (gltf) {
+            currentModel = gltf.scene;
+            scene.add(currentModel);
+          },
+          undefined,
+          function (error) {
+            console.error("Помилка завантаження моделі:", error);
+          }
+        );
+      }
+
+      // Анімація
+      function animate() {
+        requestAnimationFrame(animate);
+        if (currentModel) {
+          // Трохи обертатимемо модель
+          currentModel.rotation.y += 0.01;
+        }
+        renderer.render(scene, camera);
+      }
+
+      // Обробка події натискання кнопки "Завантажити модель"
+      document
+        .getElementById("loadButton")
+        .addEventListener("click", function () {
+          const select = document.getElementById("modelSelect");
+          loadModel(select.value);
+        });
+
+      // Масштабування при зміні розміру вікна
+      window.addEventListener("resize", onWindowResize, false);
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      // Запуск
+      init();
+    </script>
+  </body>
+</html>
